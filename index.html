@@ -1,1 +1,362 @@
-<h1>Hello World!</h1>
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script type="text/javascript" src="./data.js"></script>
+    <script type="text/javascript" src="./fucntions.js"></script>
+
+    <style>
+        table,
+        th,
+        td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 5px;
+        }
+
+        table {
+          padding: 20px
+        }
+
+        .openbtn{
+          padding: 8px 8px 8px 8px;
+          text-decoration: none;
+          font-size: 16px;
+          color: #818181;
+          display: block;
+          width: 110px;
+        }
+
+        #myinputs {
+          height: 100%;
+          width: 0;
+          position: fixed;
+          z-index: 1;
+          top: 0;
+          left: 0;
+          background-color: rgba(238, 238, 238, 0.9);
+          overflow-x: hidden;
+          padding-top: 40px;
+          transition: 0.5s;
+          }
+        #myinputs a {
+          padding: 8px 8px 8px 32px;
+          text-decoration: none;
+          font-size: 25px;
+          color: #818181;
+          display: block;
+          transition: 0.3s;
+        }
+        #myinputs form{
+          padding: 8px 8px 8px 16px
+        }
+
+        #closebtn{
+          position: absolute;
+          top: 0;
+          right: 10px;
+          font-size: 36px;
+          margin-left: 50px;
+        }
+
+        h1{
+          padding-left: 16px;
+          font-size: 14pt;
+        }
+
+        @media print{
+          .no-print, .no-print *
+          {
+            display: none !important;
+          }
+        }
+
+    </style>
+</head>
+
+<script type="text/javascript">
+
+    function modelchange()
+    {
+      var model = document.getElementById('model').value;
+      var modelindex = document.getElementById('model').selectedIndex;
+
+      if (model == 'axa' || model == 'axb' || model == 'cnb' || model == 'cnc')
+      {
+        numbertext.innerHTML = '<select id="model" onchange="modelchange()">' +
+                               '<option value="a">A-</option>' +
+                               '<option value="am">AM-</option>' +
+                               '<option value="dm">DM-</option>' +
+                               '<option value="slf">SLF-</option>' +
+                               '<option value="mlf">MFL-</option>' +
+                               '<option value="llf">LLF-</option>' +
+                               '<option value="prsl">PRSL-</option>' +
+                               '<option value="prll">PRLL-</option>' +
+                               '<option value="prsm">PRSM-</option>' +
+                               '<option value="elbsp">ELBSP-</option>' +
+                               '<option value="elblp">ELBLP-</option>' +
+                               '<option value="axa">AX-A</option>' +
+                               '<option value="axb">AX-B</option>' +
+                               '<option value="cnb">CN-B</option>' +
+                               '<option value="cnc">CN-C</option>' +
+                               '</select>';
+      }
+      else{
+          numbertext.innerHTML = '<select id="model" onchange="modelchange()">' +
+                                 '<option value="a">A-</option>' +
+                                 '<option value="am">AM-</option>' +
+                                 '<option value="dm">DM-</option>' +
+                                 '<option value="slf">SLF-</option>' +
+                                 '<option value="mlf">MFL-</option>' +
+                                 '<option value="llf">LLF-</option>' +
+                                 '<option value="prsl">PRSL-</option>' +
+                                 '<option value="prll">PRLL-</option>' +
+                                 '<option value="prsm">PRSM-</option>' +
+                                 '<option value="elbsp">ELBSP-</option>' +
+                                 '<option value="elblp">ELBLP-</option>' +
+                                 '<option value="axa">AX-A</option>' +
+                                 '<option value="axb">AX-B</option>' +
+                                 '<option value="cnb">CN-B</option>' +
+                                 '<option value="cnc">CN-C</option>' +
+                                 '</select>' +
+                                 '<input type="text" name="number">';
+      }
+
+      //Set model selection to the selected model
+      document.getElementById('model').selectedIndex = modelindex;
+
+    }
+
+    function unitchange()
+    {
+      var unit = document.getElementById('velunit').value;
+      if(unit == 'fpm')
+      {
+        dimensions.innerHTML = '';
+        return;
+      }
+
+      dimensions.innerHTML = dimensions.innerHTML + '<br> X-Axis: <input type="text" name="xaxis"> <br>Y-Axis: <input type="text" name="yaxis"> <br><br>';
+
+    }
+
+    function getanswer() {
+        // Get model name from the input selector
+        var model = document.getElementById('model').value;
+        //Get model number from the input box
+        if (model == 'axa' || model == 'axb' || model == 'cnb' || model == 'cnc'){
+
+        }
+        else {
+          var number = document.getElementsByName('number')[0].value;
+        }
+        //Get face velocity from the input box
+        var facevelocity = document.getElementsByName('velocity')[0].value;
+        //Get face velocity unit from the input selector
+        var velocityunit = document.getElementById('velunit').value;
+
+        //Check the velocity units and converts if needed
+        if (velocityunit == 'cfm') {
+            console.log('The units are Cubic Feet per Minute')
+            facevelocity = convertvelocity(facevelocity);
+        }
+
+        //Check to see what model is asked for
+        if (model == 'axa' || model == 'axb' || model == 'cnb' || model == 'cnc') {
+            console.log("The model is equal to " + model + " the code needs to be changed to be able to calculate this model.")
+            //Get surrounding face velocities
+            var surroundvel = surroundingvelocities(model, facevelocity);
+            //Get lower insertion loss array
+            var lowerlossaray = this[model]['1'][String(surroundvel[0])];
+            //Get higher insertion loss array
+            var higherlossarray = this[model]['1'][String(surroundvel[1])];
+
+            //Interpolate the face velocities for the given face velocity
+            var ansarray = new Array();
+
+            for(var i=0; i < lowerlossaray.length; i++)
+            {
+              ansarray[i] = interpolate(surroundvel[0], surroundvel[1], facevelocity, lowerlossaray[i], higherlossarray[i]);
+            }
+
+            //Round final answer
+            for(var i = 0; i < ansarray.length; i++)
+            {
+              ansarray[i] = Math.round(ansarray[i]);
+            }
+
+            document.getElementsByName('ans')[0].value = ansarray;
+
+            return;
+        }
+
+        //Get surrounding face velocities
+        var surroundvel = surroundingvelocities(model, facevelocity);
+        //Get surrounding model numbers
+        var surroundnum = surroundingnumber(model, number);
+        //Set variable to lower model
+        var lowermodel = this[model][String(surroundnum[0])];
+        //Set variable to higher model
+        var highermodel = this[model][String(surroundnum[1])];
+
+
+        //Interpolate Insertion Loss based on face velocity
+        //for the lower model number
+        //get the insertion loss array at the lower velocity
+        var lowerlossarray1 = lowermodel[String(surroundvel[0])];
+        //get the insertion loss array at the higher velocity
+        var lowerlossarray2 = lowermodel[String(surroundvel[1])];
+        //initialize the lower loss array
+        var lowerlossarray = new Array();
+        //interpolate the insertion losses for the face velocity
+        for (var i = 0; i < lowerlossarray1.length; i++) {
+            lowerlossarray[i] = interpolate(surroundvel[0], surroundvel[1], facevelocity, lowerlossarray1[i], lowerlossarray2[i]);
+        }
+        //Interpolate Insertion Loss based on face velocity
+        //for the higher model number
+        //get the insertion loss array at the lower velocity
+        var higherlossarray1 = highermodel[String(surroundvel[0])];
+        //get the insertion loss array at the higher velocity
+        var higherlossarray2 = highermodel[String(surroundvel[1])];
+        //initialize the higher loss array
+        var higherlossarray = new Array();
+
+        //interpolate the insertion losses for the face velocity
+        for (var i = 0; i < lowerlossarray.length; i++) {
+            higherlossarray[i] = interpolate(surroundvel[0], surroundvel[1], facevelocity, higherlossarray1[i], higherlossarray2[i]);
+        }
+        //Interpolate the final loss array for the given model
+        //initialize the answer array
+        var ans = new Array();
+
+        //Interpolate the final dataset
+        for (var i = 0; i < lowerlossarray.length; i++) {
+            ans[i] = interpolate(surroundnum[0], surroundnum[1], number, lowerlossarray[i], higherlossarray[i]);
+        }
+
+        //Round the final answer
+        for (var i = 0; i < lowerlossarray.length; i++) {
+            ans[i] = Math.round(ans[i]);
+        }
+        document.getElementsByName('ans')[0].value = ans;
+
+        var statpress = calculatestaticpressuredrop(model, facevelocity, number);
+        document.getElementsByName('staticpressuredrop')[0].value = statpress;
+    }
+</script>
+
+<body>
+  <div id="openbtn" class="no-print">
+    <a href="javascript:void(0)" class="openbtn" onclick="openNav()">&larr; Open Options</a>
+  </div>
+
+  <div id="myinputs" class="no-print">
+      <a href="javascript:void(0)" id="closebtn" onclick="closeNav()">&times;</a>
+      <h1><b>Insertion Loss Calculator</b></h1>
+        <form onkeypress="if(event.keyCode==13){getanswer(); event.preventDefault()}">
+            Tag:
+            <br>
+            <input type="text" name="tag">
+            <br>
+        </form>
+
+
+        <form onkeypress="if(event.keyCode==13){getanswer(); event.preventDefault()}">
+              Model Number:
+              <br>
+            <div id="numbertext">
+              <select id="model" onchange="modelchange()">
+                <option value="a">A-</option>
+                <option value="am">AM-</option>
+                <option value="dm">DM-</option>
+                <option value="slf">SLF-</option>
+                <option value="mlf">MFL-</option>
+                <option value="llf">LLF-</option>
+                <option value="prsl">PRSL-</option>
+                <option value="prll">PRLL-</option>
+                <option value="prsm">PRSM-</option>
+                <option value="elbsp">ELBSP-</option>
+                <option value="elblp">ELBLP-</option>
+                <option value="axa">AX-A</option>
+                <option value="axb">AX-B</option>
+                <option value="cnb">CN-B</option>
+                <option value="cnc">CN-C</option>
+              </select>
+
+              <input type="text" name="number">
+            </div>
+
+              <br>
+        </form>
+
+
+        <form onkeypress="if(event.keyCode==13){getanswer(); event.preventDefault()}">
+            Face Valocity:
+            <br>
+            <input type="text" name="velocity">
+            <select onchange="unitchange()" id="velunit">
+                <option value="fpm">FPM</option>
+                <option value="cfm">CFM</option>
+            </select>
+            <br>
+            <div id="dimensions"></div>
+            <br>
+            <input type="button" value="Submit" onclick="getanswer()">
+            <input type="button" value="Clear Input Boxes" onclick="clearinputs()">
+        </form>
+
+        <form>
+            Insertion Loss:
+            <br>
+            <input type="text" name="ans">
+            <br>
+        </form>
+
+        <form>
+            Static Pressure Drop:
+            <br>
+            <input type="text" name="staticpressuredrop">
+            <br>
+        </form>
+
+        <form>
+          <input type="button" value="Save Answers" onclick="saveanswer()">
+          <input type="button" value="Clear Table" onclick="cleartable()">
+        </form>
+    </div>
+
+    <div id="table">
+      <img id="logoimage" src="https://dl.dropboxusercontent.com/u/701651/images/ruskinlogo.png">
+      <br/>
+      <br/>
+        <table style="width:100%" id="anstable">
+            <thead>
+                <tr>
+                    <th rowspan="2">Tag</th>
+                    <th rowspan="2">Model</th>
+                    <th rowspan="2">Face Velocity</th>
+                    <th rowspan="2">Static Pressure Drop</th>
+                    <th colspan="8">Insertion Loss</th>
+                </tr>
+                <tr>
+                    <th>63</th>
+                    <th>125</th>
+                    <th>250</th>
+                    <th>500</th>
+                    <th>1000</th>
+                    <th>2000</th>
+                    <th>4000</th>
+                    <th>8000</th>
+                </tr>
+            </thead>
+        </table>
+        <br>
+        <br>
+    </div>
+
+
+</body>
